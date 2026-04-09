@@ -188,11 +188,11 @@ def search_external():
         if response.status_code == 200: 
             product = data.get("product")
             print("\n -- Search Result from OpenFoodFacts --")
-            print(f" Name    : {product.get('product_name', 'N/A')}")
-            print(f" Brand   : {product.get('brands', 'N/A')}")
-            print(f" Category: {product.get('categories', 'N/A')}")
+            print(f" Name       : {product.get('product_name', 'N/A')}")
+            print(f" Brand      : {product.get('brands', 'N/A')}")
+            print(f" Category   : {product.get('categories', 'N/A')}")
             print(f" Ingredients: {product.get('ingredients_text', 'N/A')[:80]}...")
-            print(f" Barcode : {product.get('barcode', 'N/A')}")
+            print(f" Barcode    : {product.get('barcode', 'N/A')}")
             
             add =  input("\n Would you like to add this product to inventory? (yes/no): ").strip().lower()
             if add == "yes":
@@ -232,4 +232,40 @@ def search_external():
         print("\n [Error] Could not connect to the server, make sure app.py is running.")
             
             
+def main():
+    print("\n" + "=" * 50)
+    print(" Welcome to the Inventory Management System!")
+    print("=" * 50)
     
+    while True:
+        print("\n MENU:")
+        print("  1. View all inventory items")
+        print("  2. View a single item by ID")
+        print("  3. Add a new item")
+        print("  4. Update item price or quantity")
+        print("  5. Delete an item")
+        print("  6. Search product on OpenFoodFacts")
+        print("  0. Exit")
+        
+        choice = input("\n Enter your choice (0-6): ").strip()
+        
+        if choice == "1":
+            view_all()
+        elif choice == "2":
+            view_one()
+        elif choice == "3":
+            add_item()
+        elif choice == "4":
+            update_item()
+        elif choice == "5":
+            delete_item()
+        elif choice == "6":
+            search_external()
+        elif choice == "0":
+            print("\n Thank you for using the Inventory Management System. Goodbye!")
+            break
+        else:
+            print("\n [Error] Invalid choice, please enter a number between 0 and 6.")
+            
+if __name__ == "__main__":
+    main()
