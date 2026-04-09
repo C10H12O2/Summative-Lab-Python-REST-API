@@ -18,3 +18,22 @@ def print_item(item):
     print(f"  Barcode     : {item['barcode']}")
     print(f"  Ingredients : {item.get('ingredients_text', 'N/A')[:60]}...")
     print("=" * 45 )
+    
+def view_all():
+    try:
+        response = requests.get(f"{BASE_URL}/inventory")
+        data = response.json()
+        items = data.get("inventory", [])
+        
+        if not items:
+            print("\n No items in inventory.")
+            return
+        
+        print(f"\n Total Items: {len(items)}")
+        for item in items:
+            print_item(item)
+            
+    except requests.exceptions.ConnectionError:
+        print("\n [Error] Could not connect to the server, make sure app.py is running.")
+        
+        
