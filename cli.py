@@ -36,4 +36,21 @@ def view_all():
     except requests.exceptions.ConnectionError:
         print("\n [Error] Could not connect to the server, make sure app.py is running.")
         
+def view_one():
+    try:
+        item_id = int(input("\n Enter item ID: "))
+    except ValueError:
+        print(" [Error] Invalid ID, please enter a number.") 
+        return
+    
+    try:
+        response = requests.get(f"{BASE_URL}/inventory/{item_id}")
+        data = response.json()
         
+        if response.status_code == 200:
+            print_item(data["item"])
+        else:
+            print(f"\n [Error] {data.get('message', 'Item not found')}")    
+            
+    except requests.exceptions.ConnectionError:
+        print("\n [Error] Could not connect to the server, make sure app.py is running.")  
