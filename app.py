@@ -7,7 +7,7 @@ GET   /inventory/<id>     -Fetch a single item
 POST  /inventory          -Add a new item
 PATCH /inventory/<id>     -Update an item
 DELETE /inventory/<id>    -Remove an item
-GET    /inventory/search   -Search OpenFoodFacts API for a product by name
+GET    /inventory/search  -Search OpenFoodFacts API for a product by name
  """
  
 from flask import Flask, jsonify, request
@@ -85,3 +85,4 @@ def get_item(item_id):
     if item is None:
         return jsonify({"status": "error", "message": f"Item with ID {item_id} not found"}), 404
     return jsonify({"status": "success", "item": item}), 200
+
