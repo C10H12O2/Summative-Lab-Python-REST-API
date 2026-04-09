@@ -163,3 +163,30 @@ def fetch_openfoodfacts(query):
                     "brands": p.get("brands", "Unknown Brand"),
                     "ingredients_text": p.get("ingredients_text", "Unknown Ingredients")
                 }
+        else:
+            url = "https://world.openfoodfacts.org/cgi/search.pl"
+            
+            params = {
+                "search_terms": query,
+                "search_simple": 1,
+                "action": "process",
+                "json": 1,
+                "page_size": 1
+            }
+            response = requests.get(url, params=params, timeout=5)
+            data = response.json()
+            
+            products = data.get("products", [])
+            if products:
+                p = products[0]
+                return {
+                    "barcode": p.get("code", "N/A"),
+                    "product_name": p.get("product_name", "Unknown Product"),
+                    "brands": p.get("brands", "Unknown Brand"),
+                    "ingredients_text": p.get("ingredients_text", "Unknown Ingredients")
+                }
+    except requests.exceptions.RequestException as e:
+        print(f"[OpenFoodFacts Error] {e}")
+    return None
+            
+            
