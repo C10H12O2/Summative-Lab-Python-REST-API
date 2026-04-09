@@ -77,4 +77,11 @@ def next_id():
 
 @app.route("/inventory", methods=["GET"])
 def get_all_items():
-    return jsonify({"status": "success", "data": {"count": len(inventory), "inventory": inventory}}), 200
+    return jsonify({"status": "success", "count": len(inventory), "inventory": inventory}), 200
+
+@app.route("/inventory/<int:item_id>", methods=["GET"])
+def get_item(item_id):
+    item = next((i for i in inventory if i["id"] == item_id), None)
+    if item is None:
+        return jsonify({"status": "error", "message": f"Item with ID {item_id} not found"}), 404
+    return jsonify({"status": "success", "item": item}), 200
