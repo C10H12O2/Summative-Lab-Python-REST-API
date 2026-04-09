@@ -219,4 +219,4 @@ inventory-system/
 ## 👨‍💻 Author
 
 Eugene Ogutu
-https://github.com/C10H12O2
+https://github.com/C10H12O2 
