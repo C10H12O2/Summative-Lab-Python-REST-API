@@ -188,5 +188,17 @@ def fetch_openfoodfacts(query):
     except requests.exceptions.RequestException as e:
         print(f"[OpenFoodFacts Error] {e}")
     return None
-            
-            
+
+@app.route("/inventory/search", methods=["GET"])
+def search_external():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"status": "error", "message": "Query parameter 'q' is required"}), 400
+    result = fetch_openfoodfacts(query)
+    if result is None:
+        return jsonify({"status": "error", "message": "Item not found in OpenFoodFacts"}), 404
+    
+    return jsonify({"status": "success", "product": result}), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
