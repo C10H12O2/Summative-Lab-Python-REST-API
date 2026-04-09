@@ -96,25 +96,25 @@ def add_item():
     except requests.exceptions.ConnectionError:
         print("\n [Error] Could not connect to the server, make sure app.py is running.")
         
- def update_item():
-     try:
-         item_id = int(input("\n Enter item ID to update: "))
-        except ValueError:
-            print(" [Error] Invalid ID, please enter a number.") 
-            return
+def update_item():
+    try:
+        item_id = int(input("\n Enter item ID to update: "))
+    except ValueError:
+        print(" [Error] Invalid ID, please enter a number.") 
+        return
+    
+    print("\n What would you like to update?")
+    print(" 1. Product Name")
+    print(" 2. Brand")
+    print(" 3. Category")
+    print(" 4. Price")
+    print(" 5. Quantity")
+    print(" 6. Expiration Date")
+    print(" 7. Barcode")
+    print(" 8. Ingredients")
+    choice = input(" Enter choice (1-8): ").strip()
         
-        print("\n What would you like to update?")
-        print(" 1. Product Name")
-        print(" 2. Brand")
-        print(" 3. Category")
-        print(" 4. Price")
-        print(" 5. Quantity")
-        print(" 6. Expiration Date")
-        print(" 7. Barcode")
-        print(" 8. Ingredients")
-        choice = input(" Enter choice (1-8): ").strip()
-        
-        try:
+    try:
             if choice == "1":
                 payload = {"product_name": input(" New Product Name: ").strip()}
             elif choice == "2":
@@ -135,11 +135,11 @@ def add_item():
             else:
                 print(" [Error] Invalid choice.")
                 return
-        except ValueError:
+    except ValueError:
             print(" [Error] Invalid input for price or quantity.")
             return
         
-        try:
+    try:
             response = requests.patch(f"{BASE_URL}/inventory/{item_id}", json=payload)
             data = response.json()
             
@@ -149,9 +149,87 @@ def add_item():
             else:
                 print(f"\n [Error] {data.get('message')}")
         
-        except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError:
             print("\n [Error] Could not connect to the server, make sure app.py is running.")
             
-            
+def delete_item():
+    try:
+        item_id = int(input("\n Enter item ID to delete: "))
+    except ValueError:
+        print(" [Error] Invalid ID, please enter a number.") 
+        return
+    
+    confirm = input(f" Are you sure you want to delete item {item_id}? (yes/no): ").strip().lower()
+    if confirm != "yes":
+        print(" Deletion cancelled.")
+        return
+    
+    try:
+        response = requests.delete(f"{BASE_URL}/inventory/{item_id}")
+        data = response.json()
         
+        if response.status_code == 200:
+            print(f"\n Item deleted successfully!")
+        else:
+            print(f"\n [Error] {data.get('message')}")
             
+    except requests.exceptions.ConnectionError:
+        print("\n [Error] Could not connect to the server, make sure app.py is running.")
+        
+def search_external():
+    query = input("\n Enter product name or barcode to search from OpenFoodFacts: ").strip()
+    if not query:
+        print(" [Error] Search query cannot be empty.")
+        return
+    try:
+        response = requests.get(f"{BASE_URL}/search_external", params={"q": query})
+        data = response.json()
+        
+        if response.status_code == 200: 
+            product = data.get("product")
+            print("\n -- Search Result from OpenFoodFacts --")
+            print(f" Name    : {product.get('product_name', 'N/A')}")
+            print(f" Brand   : {product.get('brands', 'N/A')}")
+            print(f" Category: {product.get('categories', 'N/A')}")
+            print(f" Ingredients: {product.get('ingredients_text', 'N/A')[:80]}...")
+            print(f" Barcode : {product.get('barcode', 'N/A')}")
+            
+            add =  input("\n Would you like to add this product to inventory? (yes/no): ").strip().lower()
+            if add == "yes":
+                try:
+                    price = float(input(" Set Price: ").strip())
+                    quantity = int(input(" Set Quantity: ").strip())
+                    category = input(" Set Category: ").strip()
+                    expiration_date = input(" Set Expiration Date (YYYY-MM-DD): ").strip()
+                    
+                except ValueError:
+                    print(" [Error] Invalid input for price or quantity.")
+                    return
+                
+                payload = {
+                    "product_name"     : product.get("product_name", "Unknown Product"),
+                    "brands"           : product.get("brands", "Unknown Brand"),
+                    "barcode"          : product.get("barcode", "N/A"),
+                    "ingredients_text" : product.get("ingredients_text", ""),
+                    "category"         : category,
+                    "price"            : price,
+                    "quantity"         : quantity,
+                    "expiration_date"  : expiration_date
+                }
+                
+                add_response = requests.post(f"{BASE_URL}/inventory", json=payload)
+                add_data = add_response.json()
+                
+                if add_response.status_code == 201:
+                    print(f"\n Product has successfully been addedd to the inventory!")
+                    print_item(add_data["item"])  
+                else:
+                    print(f"\n [Error] {add_data.get('message')}")
+        else:
+            print(f"\n [Error] {data.get('message')}")
+                    
+    except requests.exceptions.ConnectionError:
+        print("\n [Error] Could not connect to the server, make sure app.py is running.")
+            
+            
+    
