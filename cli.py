@@ -54,3 +54,48 @@ def view_one():
             
     except requests.exceptions.ConnectionError:
         print("\n [Error] Could not connect to the server, make sure app.py is running.")  
+        
+def add_item():
+    print("\n -- Add New Item --")
+    try:
+        product_name = input(" Product Name: ").strip()
+        brands = input(" Brand: ").strip()
+        category = input(" Category: ").strip()
+        price = float(input(" Price: ").strip())
+        quantity = int(input(" Quantity: ").strip())
+        expiration_date = input(" Expiration Date (YYYY-MM-DD): ").strip()
+        barcode = input(" Barcode (optional): ").strip()
+        ingredients = input(" Ingredients (optional): ").strip()
+        
+    except ValueError:
+        print(" [Error] Price must be a decimal and quantity must be a whole number.")
+        return
+    
+        
+    payload = {
+        "product_name": product_name,
+        "brands": brands,
+        "category": category,
+        "price": price,
+        "quantity": quantity,
+        "barcode": barcode or "N/A",
+        "ingredients_text": ingredients or "N/A",
+        "expiration_date": expiration_date
+    }
+    
+    try:
+        response = requests.post(f"{BASE_URL}/inventory", json=payload)
+        data = response.json()
+        
+        if response.status_code == 201:
+            print(f"\n Item added successfully!")
+            print_item(data["item"])
+        else:
+            print(f"\n [Error] {data.get('message')}")
+            
+    except requests.exceptions.ConnectionError:
+        print("\n [Error] Could not connect to the server, make sure app.py is running.")
+        
+        
+        
+            
