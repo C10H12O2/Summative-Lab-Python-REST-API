@@ -124,4 +124,16 @@ def update_item(item_id):
             item[field] = data[field]
             
     return jsonify({"status": "success", "message": "Item updated successfully", "item": item}), 200
+
+@app.route("/inventory/<int:item_id>", methods=["DELETE"])
+def delete_item(item_id):
+    global inventory
+    item = next((i for i in inventory if i["id"] == item_id), None)
+    if item is None:
+        return jsonify({"status": "error", "message": f"Item with ID {item_id} not found"}), 404
+    
+    inventory = [i for i in inventory if i["id"] != item_id]
+    return jsonify({"status": "success", "message": "Item deleted successfully"}), 200
+
+
     
