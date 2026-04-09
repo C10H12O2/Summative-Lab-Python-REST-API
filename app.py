@@ -18,6 +18,7 @@ app = Flask(__name__)
 inventory = [
     {
         "id":1,
+        "barcode": "0038000138416",
         "product_name": "Organic Almond Milk",
         "brands": "Silk",
         "ingredients_text": "Filtered water, almonds, cane sugar, sea salt, sunflower lecithin, gellan gum",
@@ -28,7 +29,8 @@ inventory = [
     },
     
     {
-                "id":2,
+        "id":2,
+        "barcode": "016000275287",
         "product_name": "Cheerios Cereal",
         "brands": "General Mills",
         "ingredients_text": "Whole grain corn, sugar, salt, natural flavors, vitamin and mineral blend",
@@ -39,7 +41,8 @@ inventory = [
     },
     
     {
-                "id":3,
+        "id":3,
+        "barcode": "021130126026",
         "product_name": "Peanut Butter Cream",
         "brands": "Blue Band",
         "ingredients_text": "Roasted, peanuts, sugar, contains 2% or less of molasses, salt, hydrogenated egetable oils",
@@ -50,7 +53,8 @@ inventory = [
     },
     
     {
-                "id":4,
+         "id":4,
+        "barcode": "041270890014",
         "product_name": "Whole wheat bread",
         "brands": "Supa Loaf",
         "ingredients_text": "Whole wheat flour, water, sugar, yeast, soybean oil, salt",
@@ -61,7 +65,8 @@ inventory = [
     },
     
     {
-                "id":5,
+        "id":5,
+        "barcode": "036800105522",
         "product_name": "Orange Juice",
         "brands": "Tropicana",
         "ingredients_text": "100% pure squeezed orange juice",
@@ -98,6 +103,7 @@ def add_item():
     
     new_item = {
         "id": next_id(),
+        "barcode": data.get("barcode", "N/A"),
         "product_name": data["product_name"],
         "brands": data["brands"],
         "ingredients_text": data.get("ingredients_text", ""),
@@ -118,7 +124,7 @@ def update_item(item_id):
 
     data = request.get_json()
     
-    updatable_fields = ["product_name", "brands", "ingredients_text", "quantity", "price", "category", "expiration_date"]
+    updatable_fields = ["product_name", "brands", "ingredients_text", "quantity", "price", "category","barcode", "expiration_date"]
     for field in updatable_fields:
         if field in data:
             item[field] = data[field]
@@ -136,4 +142,24 @@ def delete_item(item_id):
     return jsonify({"status": "success", "message": "Item deleted successfully"}), 200
 
 
+def fetch_openfoodfacts(query):
+    """
+    This basically fetches product data from OpenFoodFacts API. 
+    It also acceps a barcode (just digits only) and or a product name(text search)
+    Also returns a simplified product dictionary or None if a failure occurs
+    """
     
+    try:
+        if query.isdigit():
+            url = f"https://world.openfoodfacts.org/api/v0/product/{query}.json"
+            response = requests.get(url, timeout=5)
+            data = response.json()
+            
+            if data.get("status") == 1:
+                p = data["product"]
+                return {
+                    "barcode": query,
+                    "product_name": p.get("product_name", "Unknown Product"),
+                    "brands": p.get("brands", "Unknown Brand"),
+                    "ingredients_text": p.get("ingredients_text", "Unknown Ingredients")
+                }
