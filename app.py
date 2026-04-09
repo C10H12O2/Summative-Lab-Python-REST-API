@@ -86,3 +86,42 @@ def get_item(item_id):
         return jsonify({"status": "error", "message": f"Item with ID {item_id} not found"}), 404
     return jsonify({"status": "success", "item": item}), 200
 
+@app.route ("/inventory", methods = ["POST"])
+def add_item():
+    data = request.get_json()
+    
+    required_fields = ["product_name", "brands", "ingredients_text", "quantity", "price", "category", "expiration_date"]
+    missing = [f for f in required_fields if f not in data]
+    
+    if missing:
+        return jsonify({"status": "error", "message": f"Missing fields: {missing}"}), 400
+    
+    new_item = {
+        "id": next_id(),
+        "product_name": data["product_name"],
+        "brands": data["brands"],
+        "ingredients_text": data.get("ingredients_text", ""),
+        "quantity": data["quantity"],
+        "price": data["price"],
+        "category": data["category"],
+        "expiration_date": data["expiration_date"]
+    }
+    
+    inventory.append(new_item)
+    return jsonify({"status": "success", "message": "Item added successfully", "item": new_item}), 201
+
+@app.route("/inventory/<int:item_id>", methods=["PATCH"])
+def update_item(item_id):
+    item = next((i for i in inventory if i["id"] == item_id), None)
+    if item is None:
+        return jsonify({"status": "error", "message": f"Item with ID {item_id} not found"}), 404
+
+    data = request.get_json()
+    
+    updatable_fields = ["product_name", "brands", "ingredients_text", "quantity", "price", "category", "expiration_date"]
+    for field in updatable_fields:
+        if field in data:
+            item[field] = data[field]
+            
+    return jsonify({"status": "success", "message": "Item updated successfully", "item": item}), 200
+    
