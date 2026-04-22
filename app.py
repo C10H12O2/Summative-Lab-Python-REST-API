@@ -82,12 +82,11 @@ def add_item():
     missing = [f for f in required_fields if f not in data]
 
     if missing:
-        return jsonify({"status": "error","message": f"Missing required fields: {missing}"
-        }), 400
+        return jsonify({"status": "error", "message": f"Missing required fields: {missing}"}), 400
 
     new_item = {
         "id": next_id(),
-        "barcode": data.get("barcode", "N/A"), 
+        "barcode": data.get("barcode", "N/A"),
         "product_name": data["product_name"],
         "brands": data["brands"],
         "ingredients_text": data.get("ingredients_text", ""),
@@ -97,33 +96,9 @@ def add_item():
         "expiration_date": data["expiration_date"]
     }
     
-@app.route("/inventory", methods=["POST"])  
-def add_item():
-    data = request.get_json()
-    required_fields = ["product_name", "brands", "ingredients_text", "quantity", "price", "category", "expiration_date"]
-    missing = [f for f in required_fields if f not in data]
-
-    if missing:
-        return jsonify({
-            "status": "error",
-            "message": f"Missing required fields: {missing}"
-        }), 400
-
-    new_item = {
-        "id": next_id(),
-        "barcode": data.get("barcode", "N/A"),  
-        "product_name": data["product_name"],
-        "brands": data["brands"],
-        "ingredients_text": data.get("ingredients_text", ""),
-        "quantity": data["quantity"],
-        "price": data["price"],
-        "category": data["category"],
-        "expiration_date": data["expiration_date"]
-    }
+    inventory.append(new_item) 
+    return jsonify({"status": "success", "message": "Item added successfully", "item": new_item}), 201  
     
-    inventory.append(new_item)
-    return jsonify({"status": "success","message": "Item added successfully","item": new_item}), 201
-
 @app.route("/inventory/<int:item_id>", methods=["PATCH"])
 def update_item(item_id):
     item = next((i for i in inventory if i["id"] == item_id), None)
@@ -150,33 +125,30 @@ def delete_item(item_id):
     return jsonify({"status": "success","message": "Item deleted successfully"}), 200
 
 def fetch_openfoodfacts(query):
+    headers = {"User-Agent": "InventoryManagementSystem/1.0"}
+    
     try:
         if query.isdigit():
             url = f"https://world.openfoodfacts.org/api/v0/product/{query}.json"
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, headers=headers, timeout=5)
+            print(f"Status code: {response.status_code}")
             data = response.json()
-
-            if data.get("status") == 1:
-                p = data["product"]
-                return {"barcode": query,"product_name": p.get("product_name", "Unknown Product"),"brands": p.get("brands", "Unknown Brand"),
-                        "ingredients_text": p.get("ingredients_text", "Unknown Ingredients")
-                }
+            p = data.get("product") if data.get("status") == 1 else None
         else:
-           url = "https://world.openfoodfacts.org/cgi/search.pl"
-           params = {"search_terms": query,"search_simple": 1,"action": "process","json": 1,"page_size": 1}
-           response = requests.get(url, params=params, timeout=5)
-           data = response.json()
+            params = {"search_terms": query, "search_simple": 1, "action": "process", "json": 1, "page_size": 1}
+            response = requests.get("https://world.openfoodfacts.org/cgi/search.pl", params=params, headers=headers, timeout=5)
+            print(f"Status code: {response.status_code}")
+            data = response.json()
+            products = data.get("products", [])
+            p = products[0] if products else None
 
-           products = data.get("products", [])
-           if products:
-                p = products[0]
-                return {
-                    "barcode": p.get("code", "N/A"),
-                    "product_name": p.get("product_name", "Unknown Product"),
-                    "brands": p.get("brands", "Unknown Brand"),
-                    "ingredients_text": p.get("ingredients_text", "Unknown Ingredients")
-                }
-
+        if p:
+            return {
+                "barcode": query if query.isdigit() else p.get("code", "N/A"),
+                "product_name": p.get("product_name", "Unknown"),
+                "brands": p.get("brands", "Unknown"),
+                "ingredients_text": p.get("ingredients_text", "Unknown")
+            }
     except requests.exceptions.RequestException as e:
         print(f"[OpenFoodFacts Error] {e}")
     return None 
